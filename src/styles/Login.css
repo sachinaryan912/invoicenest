@@ -1,0 +1,164 @@
+/* Outer background wrapper */
+.login-wrapper {
+  background-image: url('/assets/image-hero.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Overlay layer */
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Transparent black */
+  z-index: 0;
+}
+
+/* Login box content sits above overlay */
+.login-box {
+  position: relative;
+  z-index: 1;
+  background-color: rgba(20, 20, 20, 0.95); /* Optional: slight black bg for form */
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.login-box {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+  
+  /* Title and subtitle */
+  .login-title {
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    color: #ff6600;
+    margin-bottom: 6px;
+  }
+  
+  .login-subtitle {
+    font-size: 13px;
+    text-align: center;
+    color: #999;
+    margin-bottom: 28px;
+  }
+  
+  /* Form */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .login-form input {
+    padding: 12px 14px;
+    font-size: 14px;
+    border: none;
+    border-radius: 12px;
+    background-color: #1e1e1e;
+    color: #fff;
+    outline: none;
+    transition: all 0.2s ease;
+    border: 1px solid #2c2c2c;
+  }
+  
+  .login-form input:focus {
+    border-color: #ff6600;
+  }
+  
+  ::placeholder {
+    color: #888;
+  }
+  
+  
+  /* Login button */
+  .login-button {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .login-button:hover {
+    background-color: #e05b00;
+  }
+  
+  /* Google button */
+  .google-button {
+    background-color: #db4437;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 22px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .google-button:hover {
+    background-color: #c1351d;
+  }
+  
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Error text */
+  .error-text {
+    color: #ff4d4d;
+    font-size: 13px;
+    margin-top: -10px;
+  }
+  
+  /* Footer */
+  .login-footer {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 28px;
+    color: #aaa;
+  }
+  
+  .login-footer a {
+    color: #ff6600;
+    text-decoration: none;
+  }
+  
+  .login-footer a:hover {
+    text-decoration: underline;
+  }
+  

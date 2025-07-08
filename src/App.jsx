@@ -12,17 +12,18 @@ import UserProfile from './components/UserProfile';
 import Payment from './pages/PaymentPage';
 import TemplateSelector from './components/TemplateSelector';
 import InvoicePreview from './components/InvoicePreview';
+import HomePage from './pages/HomePage';
 
 const App = () => {
   return (
     <Router>
       <AuthProvider>
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="px-4 py-6">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<h1 className="text-center text-2xl mt-10">Welcome to AryanTech Invoice Generator</h1>} />
+            <Route path="/" element={<HomePage/>} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/invoice-generator" element={<InvoiceGenerator />} />
             <Route path="/my-invoices" element={<MyInvoices />} />
