@@ -18,7 +18,6 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Navbar />
-        <main className="px-4 py-6">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -32,7 +31,6 @@ const App = () => {
             <Route path="/invoice-preview/:invoiceId" element={<InvoicePreview />} />
             <Route path="*" element={<h1 className="text-center text-2xl mt-10">404 - Page Not Found</h1>} />
           </Routes>
-        </main>
       </AuthProvider>
     </Router>
   );

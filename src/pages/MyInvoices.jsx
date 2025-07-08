@@ -1,11 +1,13 @@
-// src/pages/MyInvoices.jsx
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import { useAuth } from '../context/AuthProvider';
+import html2pdf from 'html2pdf.js';
+import InvoiceGenerator from './InvoiceGenerator';
 
 const MyInvoices = () => {
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const { user } = useAuth();
   const [invoices, setInvoices] = useState([]);
 
@@ -23,51 +25,181 @@ const MyInvoices = () => {
   }, [user]);
 
   const handleDownload = async (invoiceId) => {
-    const url = await getDownloadURL(ref(storage, `invoices/${user.uid}/${invoiceId}.pdf`));
-    window.open(url, '_blank');
+    try {
+      const url = await getDownloadURL(ref(storage, `invoices/${user.uid}/${invoiceId}.pdf`));
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   const handleDelete = async (invoiceId) => {
-    await deleteDoc(doc(db, 'invoices', invoiceId));
-    await deleteObject(ref(storage, `invoices/${user.uid}/${invoiceId}.pdf`));
-    setInvoices(invoices.filter(inv => inv.id !== invoiceId));
+    try {
+      await deleteDoc(doc(db, 'invoices', invoiceId));
+      // await deleteObject(ref(storage, `invoices/${user.uid}/${invoiceId}.pdf`));
+      setInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
+    } catch (error) {
+      console.error('Delete failed:', error);
+    }
+  };
+
+  const handleGeneratePDF = (invoice) => {
+    const element = document.getElementById(`invoice-${invoice.id}`);
+    element.style.display = 'block';
+
+    const opt = {
+      margin: 0.5,
+      filename: `Invoice-${invoice.invoiceNumber || invoice.clientDetails?.name || 'Client'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      element.style.display = 'none';
+    });
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">My Invoices</h1>
+      <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">My Invoices</h1>
+
         {invoices.length === 0 ? (
           <p className="text-gray-600">No invoices found.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="space-y-6">
             {invoices.map(invoice => (
-              <li key={invoice.id} className="py-4 flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">{invoice.clientDetails?.name || 'Unnamed Client'}</h3>
-                  <p className="text-sm text-gray-500">{new Date(invoice.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+              <li key={invoice.id} className="p-4 border rounded-md shadow-sm bg-gray-50">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center space-x-4">
+                    {invoice.logo && (
+                      <img
+                        src={invoice.logo}
+                        alt="Logo"
+                        className="h-12 w-12 object-contain border rounded"
+                      />
+                    )}
+                    <div>
+                      <p className="text-sm text-gray-500">Invoice No: <strong>{invoice.invoiceNumber || 'N/A'}</strong></p>
+                      <h3 className="text-lg font-semibold text-gray-800">{invoice.clientDetails?.name || 'Unnamed Client'}</h3>
+                      <p className="text-sm text-gray-500">
+                        Date: {invoice.createdAt?.seconds ? new Date(invoice.createdAt.seconds * 1000).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => handleDownload(invoice.id)}
+                      className="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Download
+                    </button>
+                    <button
+                      onClick={() => handleGeneratePDF(invoice)}
+                      className="px-4 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Generate PDF
+                    </button>
+                    <button
+                      onClick={() => handleDelete(invoice.id)}
+                      className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => setSelectedInvoice(invoice)}
+                      className="px-4 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    >
+                      ✏️ Edit
+                    </button>
+                  </div>
                 </div>
-                <div className="space-x-2">
-                  <button
-                    onClick={() => handleDownload(invoice.id)}
-                    className="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Download
-                  </button>
-                  <button
-                    onClick={() => handleDelete(invoice.id)}
-                    className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
+
+                {/* Hidden printable PDF template */}
+                <div
+                  id={`invoice-${invoice.id}`}
+                  style={{
+                    display: 'none',
+                    width: '800px',
+                    backgroundColor: '#ffffff',
+                    padding: '40px',
+                    color: '#000',
+                    fontFamily: 'Arial, sans-serif',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {invoice.logo && (
+                      <img src={invoice.logo} alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                    )}
+                    <div style={{ textAlign: 'right' }}>
+                      <h2 style={{ fontSize: '24px', marginBottom: '5px' }}>INVOICE</h2>
+                      <p><strong>Invoice No:</strong> {invoice.invoiceNumber || 'N/A'}</p>
+                      <p><strong>Date:</strong> {invoice.createdAt?.seconds ? new Date(invoice.createdAt.seconds * 1000).toLocaleDateString() : ''}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '30px' }}>
+                    <p><strong>Bill To:</strong></p>
+                    <p>{invoice.clientDetails?.name}</p>
+                    {invoice.clientDetails?.email && <p>{invoice.clientDetails.email}</p>}
+                  </div>
+
+                  <table style={{ width: '100%', marginTop: '30px', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f3f4f6' }}>
+                        <th style={thStyle}>Description</th>
+                        <th style={thStyle}>Qty</th>
+                        <th style={thStyle}>Price</th>
+                        <th style={thStyle}>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoice.items?.map((item, index) => (
+                        <tr key={index}>
+                          <td style={tdStyle}>{item.description}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right' }}>{item.quantity}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right' }}>
+                            {invoice.currency === 'USD' ? '$' : '₹'}{item.price.toFixed(2)}
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: 'right' }}>
+                            {invoice.currency === 'USD' ? '$' : '₹'}{(item.price * item.quantity).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div style={{ marginTop: '30px', textAlign: 'right' }}>
+                    <p>Subtotal: {invoice.currency === 'USD' ? '$' : '₹'}{invoice.subtotal?.toFixed(2)}</p>
+                    <p>Tax ({invoice.tax || 0}%): {invoice.currency === 'USD' ? '$' : '₹'}{((invoice.subtotal || 0) * (invoice.tax || 0) / 100).toFixed(2)}</p>
+                    <p style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                      Total: {invoice.currency === 'USD' ? '$' : '₹'}{invoice.total?.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
         )}
+
       </div>
     </div>
   );
+};
+
+const thStyle = {
+  border: '1px solid #d1d5db',
+  padding: '8px',
+  fontSize: '14px',
+  textAlign: 'left',
+};
+
+const tdStyle = {
+  border: '1px solid #d1d5db',
+  padding: '8px',
+  fontSize: '14px',
 };
 
 export default MyInvoices;
