@@ -1,0 +1,136 @@
+.dashboard-wrapper {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  .dashboard-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 0;
+  }
+  
+  .dashboard-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* Offset below Navbar */
+  .dashboard-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 60px 20px;
+  }
+  
+  /* Main box */
+  .dashboard-box {
+    background-color: rgba(20, 20, 20, 0.95);
+    padding: 40px;
+    border-radius: 16px;
+    color: white;
+    max-width: 960px;
+    width: 100%;
+    animation: fadeInUp 0.8s ease both;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Headings */
+  .dashboard-title {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .dashboard-subtitle {
+    color: #ccc;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+  }
+  
+  /* Cards */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  
+  .dashboard-card {
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: inset 0 0 0 2px #2c2c2c;
+    transition: transform 0.3s ease;
+  }
+  
+  .dashboard-card h2 {
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 8px;
+  }
+  
+  .dashboard-card p {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin-bottom: 12px;
+  }
+  
+  .dashboard-card a {
+    color: #ff6600;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  
+  .dashboard-card a:hover {
+    text-decoration: underline;
+  }
+  
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .dashboard-card.orange {
+    border-left: 4px solid #ff6600;
+  }
+  
+  .dashboard-card.green {
+    border-left: 4px solid #00cc66;
+  }
+  
+  .dashboard-footer {
+    font-size: 0.85rem;
+    text-align: center;
+    color: #777;
+    margin-top: 40px;
+  }
+  
+  /* Animation */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(25px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Responsive */
+  @media (max-width: 480px) {
+    .dashboard-box {
+      padding: 25px 20px;
+    }
+  
+    .dashboard-title {
+      font-size: 1.6rem;
+    }
+  }
+  
