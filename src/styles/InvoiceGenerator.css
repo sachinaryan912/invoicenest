@@ -1,0 +1,74 @@
+.invoice-wrapper {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  .invoice-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 0;
+  }
+  
+  .invoice-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 60px 20px;
+  }
+  input{
+    padding: 10px !important;
+    margin: 5px 0 !important;
+  }
+  .model-form{
+    padding: 20px !important;
+  }
+
+
+
+   .invoice-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .invoice-btn {
+    background-color: #ff6600;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 15px;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .invoice-btn:hover {
+    background-color: #e55b00;
+  }
+  
+  .invoice-btn.secondary {
+    background-color: transparent;
+    border: 1px solid #ff6600;
+    color: #ff6600;
+  }
+  
+  .invoice-btn.secondary:hover {
+    background-color: #1e1e1e;
+  }
+
+
+  .padding-design{
+    padding: 20px !important;
+  }
+
+  /* Toastify bold text */
+.Toastify__toast-body {
+  font-weight: bold;
+}

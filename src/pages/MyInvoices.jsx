@@ -5,6 +5,9 @@ import { db, storage } from '../firebase/config';
 import { useAuth } from '../context/AuthProvider';
 import html2pdf from 'html2pdf.js';
 import InvoiceGenerator from './InvoiceGenerator';
+import { toast } from 'react-toastify';
+import '../styles/InvoiceGenerator.css'; // Import your CSS styles
+import invoicedBg from '/assets/hero-image2.jpeg';
 
 const MyInvoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -19,6 +22,7 @@ const MyInvoices = () => {
           .filter(doc => doc.data().userId === user.uid)
           .map(doc => ({ id: doc.id, ...doc.data() }));
         setInvoices(userInvoices);
+        console.log('Fetched Invoices:', userInvoices);
       };
       fetchInvoices();
     }
@@ -38,6 +42,13 @@ const MyInvoices = () => {
       await deleteDoc(doc(db, 'invoices', invoiceId));
       // await deleteObject(ref(storage, `invoices/${user.uid}/${invoiceId}.pdf`));
       setInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
+      toast('Invoice deleted successfully', {
+  style: {
+    background: '#ff4d4f',
+    color: '#fff',
+  },
+  icon: '🗑️',
+});
     } catch (error) {
       console.error('Delete failed:', error);
     }
@@ -62,16 +73,17 @@ const MyInvoices = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">My Invoices</h1>
+    <div className="invoice-wrapper" style={{ backgroundImage: `url(${invoicedBg})` }}>
+      <div className="invoice-overlay"></div>
+      <div className="invoice-content">
+        <h1 className="text-3xl font-bold mb-6 text-white-800">My Invoices</h1>
 
         {invoices.length === 0 ? (
           <p className="text-gray-600">No invoices found.</p>
         ) : (
           <ul className="space-y-6">
             {invoices.map(invoice => (
-              <li key={invoice.id} className="p-4 border rounded-md shadow-sm bg-gray-50">
+              <li key={invoice.id} className="p-4 border rounded-md shadow-sm text-white">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center space-x-4">
                     {invoice.logo && (
@@ -82,38 +94,42 @@ const MyInvoices = () => {
                       />
                     )}
                     <div>
-                      <p className="text-sm text-gray-500">Invoice No: <strong>{invoice.invoiceNumber || 'N/A'}</strong></p>
-                      <h3 className="text-lg font-semibold text-gray-800">{invoice.clientDetails?.name || 'Unnamed Client'}</h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm ">Invoice No: <strong>{invoice.invoiceNumber || 'N/A'}</strong></p>
+                      <h2 className="text-lg font-semibold ">
+                        {invoice.items.length > 0
+                          ? invoice.items.map((item) => item.projectName).join(', ')
+                          : "None"}
+                      </h2>
+                      <p className="text-sm ">
                         Date: {invoice.createdAt?.seconds ? new Date(invoice.createdAt.seconds * 1000).toLocaleDateString() : ''}
                       </p>
                     </div>
                   </div>
-                  <div className="space-x-2">
-                    <button
+                  <div className="space-x-2 invoice-buttons">
+                    {/* <button
                       onClick={() => handleDownload(invoice.id)}
                       className="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
                       Download
-                    </button>
+                    </button> */}
                     <button
                       onClick={() => handleGeneratePDF(invoice)}
-                      className="px-4 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                      className="invoice-btn"
                     >
                       Generate PDF
                     </button>
                     <button
                       onClick={() => handleDelete(invoice.id)}
-                      className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                      className="invoice-btn secondary"
                     >
                       Delete
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => setSelectedInvoice(invoice)}
                       className="px-4 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600"
                     >
                       ✏️ Edit
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
@@ -149,7 +165,7 @@ const MyInvoices = () => {
                   <table style={{ width: '100%', marginTop: '30px', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f3f4f6' }}>
-                        <th style={thStyle}>Description</th>
+                        <th style={thStyle}>Project Name</th>
                         <th style={thStyle}>Qty</th>
                         <th style={thStyle}>Price</th>
                         <th style={thStyle}>Total</th>
@@ -158,7 +174,7 @@ const MyInvoices = () => {
                     <tbody>
                       {invoice.items?.map((item, index) => (
                         <tr key={index}>
-                          <td style={tdStyle}>{item.description}</td>
+                          <td style={tdStyle}>{item.projectName}</td>
                           <td style={{ ...tdStyle, textAlign: 'right' }}>{item.quantity}</td>
                           <td style={{ ...tdStyle, textAlign: 'right' }}>
                             {invoice.currency === 'USD' ? '$' : '₹'}{item.price.toFixed(2)}
