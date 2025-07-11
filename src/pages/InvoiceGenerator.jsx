@@ -1,60 +1,54 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, doc, updateDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { collection, addDoc, doc, updateDoc, getDocs, serverTimestamp, orderBy, query, limit } from 'firebase/firestore';
 import { useAuth } from '../context/AuthProvider';
+import { toast } from 'react-toastify';
+import invoicedBg from '/assets/hero-image2.jpeg';
+import '../styles/invoice.css'; // Ensure you have this CSS file for styling
 
 const InvoiceGenerator = ({ invoiceToEdit }) => {
   const { user } = useAuth();
-const [showModal, setShowModal] = useState(false);
-const [items, setItems] = useState([{ projectName: '', quantity: 1, price: 0 }]);
-const [clientSignature, setClientSignature] = useState(null);
- const [signatureFile, setSignatureFile] = useState(null);
-  const [editingInvoiceId, setEditingInvoiceId] = useState(null);
-  const [invoiceNumber, setInvoiceNumber] = useState('');
+const [showEditModal, setShowEditModal] = useState(false);
+const [invoiceNumber, setInvoiceNumber] = useState(''); // will be fetched
+  const [items, setItems] = useState([{ projectName: '', quantity: 1, price: 0 }]);
   const [clientName, setClientName] = useState('');
   const [logo, setLogo] = useState(null);
-  const [logoFile, setLogoFile] = useState(null);
+  const [clientSignature, setClientSignature] = useState(null);
   const [tax, setTax] = useState(0);
   const [currency, setCurrency] = useState('INR');
+  const [editingInvoiceId, setEditingInvoiceId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const today = new Date().toISOString().split('T')[0];
+  const [invoiceDate, setInvoiceDate] = useState(today); // today = new Date().toISOString().split('T')[0]
 
   const currencySymbol = currency === 'INR' ? '₹' : '$';
-  const currentDate = new Date().toISOString().split('T')[0];
-
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
   const taxAmount = (subtotal * tax) / 100;
   const total = subtotal + taxAmount;
 
-  useEffect(() => {
-    const fetchInvoiceNumber = async () => {
-      const q = query(collection(db, 'invoices'), orderBy('invoiceNumber', 'desc'), limit(1));
-      const snapshot = await getDocs(q);
-      const last = snapshot.docs[0]?.data()?.invoiceNumber || 1000;
-      setInvoiceNumber(last + 1);
-    };
-    if (!editingInvoiceId) fetchInvoiceNumber();
-  }, [editingInvoiceId]);
+   const draftInvoices  =()=> {
+  toast.success('Draft saved successfully!');
+}
 
-  useEffect(() => {
-    if (invoiceToEdit) {
-      setEditingInvoiceId(invoiceToEdit.id);
-      setClientName(invoiceToEdit.clientDetails?.name || '');
-      setSignatureFile(invoiceToEdit.clientSignature || null);
-      setClientSignature(invoiceToEdit.clientSignature ? URL.createObjectURL(invoiceToEdit.clientSignature) : null);
-      setItems(invoiceToEdit.items || []);
-      setLogo(invoiceToEdit.logo || null);
-      setTax(invoiceToEdit.tax || 0);
-      setCurrency(invoiceToEdit.currency || 'INR');
-      setInvoiceNumber(invoiceToEdit.invoiceNumber || '');
-    }
-  }, [invoiceToEdit]);
+  // Convert file to base64
+  const toBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
 
-  
+  const handleLogoChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) setLogo(await toBase64(file));
+  };
 
-  const removeItem = (index) => {
-    const updated = items.filter((_, i) => i !== index);
-    setItems(updated);
+  const handleSignatureChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) setClientSignature(await toBase64(file));
   };
 
   const handleItemChange = (index, field, value) => {
@@ -63,12 +57,9 @@ const [clientSignature, setClientSignature] = useState(null);
     setItems(updated);
   };
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      setLogo(URL.createObjectURL(file));
-    }
+  const removeItem = (index) => {
+    const updated = items.filter((_, i) => i !== index);
+    setItems(updated);
   };
 
   const handleSubmit = async () => {
@@ -76,7 +67,6 @@ const [clientSignature, setClientSignature] = useState(null);
 
     try {
       setLoading(true);
-
       const invoiceData = {
         userId: user.uid,
         clientDetails: { name: clientName },
@@ -88,6 +78,7 @@ const [clientSignature, setClientSignature] = useState(null);
         total,
         createdAt: serverTimestamp(),
         invoiceNumber,
+        clientSignature,
       };
 
       if (editingInvoiceId) {
@@ -96,239 +87,338 @@ const [clientSignature, setClientSignature] = useState(null);
         await addDoc(collection(db, 'invoices'), invoiceData);
       }
 
-      // Reset form
       setSuccess(true);
       setEditingInvoiceId(null);
       setClientName('');
       setItems([{ projectName: '', quantity: 1, price: 0 }]);
       setTax(0);
       setLogo(null);
+      setClientSignature(null);
       setCurrency('INR');
       setInvoiceNumber('');
+      toast.success('Invoice saved successfully!');
     } catch (error) {
       console.error('Error saving invoice:', error);
+      toast.error('Failed to save invoice');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    const fetchInvoiceNumber = async () => {
+      const q = query(collection(db, 'invoices'), orderBy('invoiceNumber', 'desc'), limit(1));
+      const snapshot = await getDocs(q);
+      const last = snapshot.docs[0]?.data()?.invoiceNumber || 1000;
+      setInvoiceNumber(last + 1);
+    };
+
+    if (!editingInvoiceId) fetchInvoiceNumber();
+  }, [editingInvoiceId]);
+
+  useEffect(() => {
+    if (invoiceToEdit) {
+      setEditingInvoiceId(invoiceToEdit.id);
+      setClientName(invoiceToEdit.clientDetails?.name || '');
+      setItems(invoiceToEdit.items || []);
+      setLogo(invoiceToEdit.logo || null);
+      setTax(invoiceToEdit.tax || 0);
+      setCurrency(invoiceToEdit.currency || 'INR');
+      setInvoiceNumber(invoiceToEdit.invoiceNumber || '');
+      setClientSignature(invoiceToEdit.clientSignature || null);
+    }
+  }, [invoiceToEdit]);
+
   return (
-    <div className="min-h-screen bg-gray-50 py-5 px-4 my-2">
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-8">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">
-          {editingInvoiceId ? 'Edit Invoice' : 'Create Invoice'}
-        </h1>
+      <div className="invoice-wrapper" style={{ backgroundImage: `url(${invoicedBg})` , padding: '20px', marginTop: '20px'}}>
+          <div className="invoice-overlay"></div>
+    
+      <h1 className="text-3xl font-bold mb-6 text-yellow-500">{editingInvoiceId ? 'Edit Invoice' : 'Create Invoice'}</h1>
+      {/* Logo & Invoice Info */}
+      <div className="invoice-content">
+        <div className="grid grid-cols-4 gap-4">
+  <div className="col-span-3  text-white p-4 rounded">
+    {/* Left (2/3 width) */}
+     <div className="grid grid-cols-2 gap-6 mb-6">
 
-        <div className="grid grid-cols-2 gap-6 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Upload Logo</label>
-            <input type="file" accept="image/*" onChange={handleLogoChange} className="mt-2" />
-            {logo && <img src={logo} alt="Logo" className="mt-3 w-24 h-24 object-contain" />}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Date</label>
-            <input
-              type="text"
-              className="mt-2 block w-full px-4 py-2 border rounded bg-gray-100"
-              value={currentDate}
-              readOnly
-            />
-            <label className="block text-sm font-medium text-gray-700 mt-4">Invoice Number</label>
-            <input
-              type="text"
-              className="mt-1 block w-full px-4 py-2 border rounded bg-gray-100"
-              value={invoiceNumber}
-              readOnly
-            />
-          </div>
+        <div>
+          <label className="block mb-2">Upload Logo</label>
+          <input type="file" accept="image/*" onChange={handleLogoChange} className='border border-gray-500 rounded-2xl' />
+          {logo && <img src={logo} className="mt-2 h-16 w-auto border border-gray-500 rounded shadow" alt="logo" />}
         </div>
-
-       
-
-
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Currency</label>
-            <select
-              className="mt-1 block w-full px-4 py-2 border rounded-md"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-            >
-              <option value="INR">INR (₹)</option>
-              <option value="USD">USD ($)</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tax (%)</label>
-            <input
-              type="number"
-              className="mt-1 block w-full px-4 py-2 border rounded-md"
-              value={tax}
-              onChange={(e) => setTax(parseFloat(e.target.value))}
-            />
-          </div>
-        </div>
-<div className="flex justify-end mb-6">
+        <div>
+<div className="relative bg-gray-800 text-white p-6 rounded-lg mb-4" style={{ padding: '20px' }}>
+  {/* Edit Button - top-right */}
+  <h1 className='text-2xl font-semibold'>Invoice Details</h1>
   <button
-    onClick={() => setShowModal(true)}
-    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+    onClick={() => setShowEditModal(true)}
+    className="absolute top-1 right-1 invoice-btn secondary px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
   >
-    ➕ Create Project
+    ✏️ Edit Invoice Info
   </button>
+
+  {/* Grid Content */}
+  <div className="grid grid-cols-2 gap-4" style={{ marginTop: '50px' }}>
+    <p>
+      <span className="font-semibold text-gray-300"> Invoice Date:</span> {invoiceDate}
+    </p>
+    <p>
+      <span className="font-semibold text-gray-300"> Due Date:</span> {invoiceDate}
+    </p>
+    <p>
+      <span className="font-semibold text-gray-300">Invoice #:</span> {invoiceNumber}
+    </p>
+  </div>
 </div>
 
-{/* Tailwind Modal */}
-{showModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white rounded-lg w-full max-w-4xl p-6 relative shadow-lg">
+
+{showEditModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="bg-white text-black p-6 rounded shadow-lg w-full max-w-md relative">
+      
+      {/* Close Button */}
       <button
-        onClick={() => setShowModal(false)}
-        className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+        onClick={() => setShowEditModal(false)}
+        className="absolute top-2 right-2 text-xl text-gray-600 hover:text-black"
       >
-        ✖
+        &times;
       </button>
 
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">Add Project Details</h2>
+      <h2 className="text-lg font-semibold mb-4">Edit Invoice Info</h2>
 
-      <div className="border rounded">
-        <div className="grid grid-cols-5 bg-gray-100 text-gray-700 font-semibold py-2 px-3">
-          <div>Project Name</div>
-          <div>Qty</div>
-          <div>Price</div>
-          <div>Total</div>
-          <div>Action</div>
-        </div>
-
-        {items.map((item, index) => (
-          <div key={index} className="grid grid-cols-5 items-center px-3 py-2 border-t gap-2">
-            <input
-              className="border p-1 rounded"
-              value={item.projectName || ''}
-              onChange={(e) => handleItemChange(index, 'projectName', e.target.value)}
-            />
-            <input
-              type="number"
-              className="border p-1 rounded"
-              value={item.quantity}
-              onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-            />
-            <input
-              type="number"
-              className="border p-1 rounded"
-              value={item.price}
-              onChange={(e) => handleItemChange(index, 'price', e.target.value)}
-            />
-            <div className="text-right pr-2">
-              {currencySymbol}{(item.price * item.quantity).toFixed(2)}
-            </div>
-            <button
-              onClick={() => removeItem(index)}
-              className="text-red-600 text-sm"
-            >
-              🗑
-            </button>
-          </div>
-        ))}
+      <div className="mb-4">
+        <label className="block mb-2">Invoice Date</label>
+        <input
+          type="date"
+          value={invoiceDate}
+          onChange={(e) => setInvoiceDate(e.target.value)}
+          className="w-full border p-2 rounded"
+        />
       </div>
 
-      <div className="flex justify-between items-center mt-6">
+      <div className="mb-4">
+        <label className="block mb-2">Invoice Number</label>
+        <input
+          type="text"
+          value={invoiceNumber}
+          onChange={(e) => setInvoiceNumber(e.target.value)}
+          className="w-full border p-2 rounded"
+        />
+      </div>
+
+      <div className="text-right">
         <button
-          onClick={() => setItems([...items, { projectName: '', quantity: 1, price: 0 }])}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => setShowEditModal(false)}
+          className="px-6 py-2 bg-green-600 text-white rounded"
         >
-          ➕ Add Another
+          Save
         </button>
-        <div className="text-right">
-          <p>Subtotal: {currencySymbol}{subtotal.toFixed(2)}</p>
-          <p>Tax ({tax}%): {currencySymbol}{taxAmount.toFixed(2)}</p>
-          <p className="font-bold text-lg">Total: {currencySymbol}{total.toFixed(2)}</p>
-        </div>
       </div>
-
-      <button
-        onClick={() => setShowModal(false)}
-        className="mt-6 w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-      >
-        Save & Close
-      </button>
     </div>
   </div>
 )}
 
-<div className="mt-6">
-  <h3 className="text-lg font-semibold mb-4 text-gray-700">Project Summary</h3>
-  {items.length === 0 ? (
-    <p className="text-gray-500">No projects added yet.</p>
-  ) : (
-    <div className="space-y-3">
-      {items.map((item, index) => (
-        <div
-          key={index}
-          className="flex justify-between items-center border p-3 rounded shadow-sm bg-white"
-        >
+
+        </div>
+        </div>
+      
+
+      
+<div className="grid grid-cols-2 font-bold  gap-10 pb-2 mb-2 justify-center items-center" style={{marginTop: '20px'}}>
+      {/* Client Info */}
+      <div className="mb-6">
+        <label className="block mb-2">Client Name</label>
+        <input
+          type="text"
+          value={clientName}
+          placeholder='Enter Client Name'
+          onChange={(e) => setClientName(e.target.value)}
+          className="w-full border border-gray-500 p-2 rounded-2xl"
+        />
+      </div>
+         {/* Project Button */}
           <div>
-            <p className="font-medium text-gray-800">{item.projectName}</p>
-            <p className="text-sm text-gray-600">Qty: {item.quantity} | Price: {currencySymbol}{item.price}</p>
-          </div>
-          <div className="font-semibold text-green-700">
-            {currencySymbol}{(item.price * item.quantity).toFixed(2)}
-          </div>
+      <div className="mb-4 text-right">
+        <button onClick={() => setShowModal(true)} className="invoice-btn secondary">
+          ➕ Create Project
+        </button>
+       </div>
+       <h1>Project Summery</h1>
+{items.length > 0 ? (
+  items.map((item, index) => (
+    <div
+      key={index}
+      className="mb-3 bg-gray-800 text-white rounded-2xl  shadow-sm hover:shadow-md transition duration-300"
+   style={{padding:'15px'}} >
+      <p className="mb-1">
+        <span className="font-semibold text-gray-300">Project:</span> {item.projectName}
+      </p>
+      <p>
+        <span className="font-semibold text-gray-300">Quantity:</span> {item.quantity}
+      </p>
+    </div>
+  ))
+) : (
+  <div className="text-center text-gray-400 italic p-4 border border-dashed border-gray-500 rounded-lg">
+    No project items added yet.
+  </div>
+)}
+
+</div>
+
+     
+</div>
+
+      {/* Modal for Project Details */}
+     {showModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/100">
+    <div className="bg-gray-700 text-white p-6 rounded shadow-lg w-full max-w-4xl relative " style={{ padding: '20px' }}>
+      {/* ❌ Close button */}
+      <button
+        onClick={() => setShowModal(false)}
+        className="absolute top-2 right-2 text-2xl text-gray-600 hover:text-black"
+      >
+        &times;
+      </button>
+
+      <h2 className="text-xl font-bold mb-4">Add Project Details</h2>
+
+      <div className="grid grid-cols-5 font-bold border-b pb-2 mb-2">
+        <div>Project</div>
+        <div>Qty</div>
+        <div>Price</div>
+        <div>Total</div>
+        <div>Action</div>
+      </div>
+
+      {items.map((item, index) => (
+        <div key={index} className="grid grid-cols-5 gap-2 items-center mb-2">
+          <input
+            className="border p-1 rounded"
+            value={item.projectName}
+            onChange={(e) => handleItemChange(index, 'projectName', e.target.value)}
+          />
+          <input
+            type="number"
+            className="border p-1 rounded"
+            value={item.quantity}
+            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+          />
+          <input
+            type="number"
+            className="border p-1 rounded"
+            value={item.price}
+            onChange={(e) => handleItemChange(index, 'price', e.target.value)}
+          />
+          <div>{currencySymbol}{(item.price * item.quantity).toFixed(2)}</div>
+          <button
+            onClick={() => removeItem(index)}
+            className="text-red-500"
+          >
+            🗑
+          </button>
         </div>
       ))}
-    </div>
-  )}
-</div>
 
-       
+      <button
+        onClick={() => setItems([...items, { projectName: '', quantity: 1, price: 0 }])}
+        className="invoice-btn secondary mt-4"
+      >
+        ➕ Add More
+      </button>
 
-      <div className="flex justify-between items-center mt-6">
-         <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700">Upload Client Signature</label>
-  <input
-    type="file"
-    accept="image/*"
-    placeholder="Upload client signature"
-    className="mt-1 block w-full px-4 py-2 border rounded-md"
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) {
-        setSignatureFile(file);
-        setClientSignature(URL.createObjectURL(file));
-      }
-    }}
-  />
-  {clientSignature && (
-    <img src={clientSignature} alt="Client Signature" className="mt-3 w-32 h-16 object-contain border" />
-  )}
-</div>
-  <div className="w-full max-w-xs bg-gray-50 p-4 rounded shadow text-sm border">
-    <div className="flex justify-between mb-2">
-      <span className="text-gray-600">Subtotal</span>
-      <span className="font-medium">{currencySymbol}{subtotal.toFixed(2)}</span>
-    </div>
-    <div className="flex justify-between mb-2">
-      <span className="text-gray-600">Tax ({tax}%)</span>
-      <span className="font-medium">{currencySymbol}{taxAmount.toFixed(2)}</span>
-    </div>
-    <div className="flex justify-between border-t pt-2 mt-2">
-      <span className="text-gray-800 font-semibold">Total</span>
-      <span className="font-bold text-lg text-green-700">{currencySymbol}{total.toFixed(2)}</span>
+      <div className="text-center   " style={{ margin: '20px 0' }}>
+        <button
+          onClick={() => setShowModal(false)}
+          className="invoice-btn"
+        >
+          Done
+        </button>
+      </div>
     </div>
   </div>
+)}
+
+
+<div className="grid grid-cols-2 font-bold  pb-2 mb-2" style={{marginTop: '20px'}}>
+
+      <div className="mb-6">
+        <label className="block mb-2">Upload Client Signature</label>
+        <input type="file" accept="image/*" onChange={handleSignatureChange} className='border border-gray-500 rounded-2xl' />
+        {clientSignature && <img src={clientSignature} className="mt-2 h-16 w-auto border rounded" alt="signature" />}
+      </div>
+
+      {/* Summary Section */}
+      <div className="bg-gray-900 p-4 rounded text-white mb-6" style={{padding: '20px'}}>
+        <h2 className="text-xl font-bold mb-2">Invoice Summary</h2>
+        <div className="flex justify-between">
+          <span>Subtotal</span>
+          <span>{currencySymbol}{subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between border-b">
+          <span>
+            Tax <span className="text-yellow-400 ml-1">⚖</span>
+          </span>
+          <span>{currencySymbol}{taxAmount.toFixed(2)} ({tax}%)</span>
+        </div>
+        <div className="flex justify-between font-bold text-green-400">
+          <span>Total</span>
+          <span>{currencySymbol}{total.toFixed(2)}</span>
+        </div>
+      </div>
 </div>
+      {/* Signature Upload */}
 
+  </div>
+  <div className="col-span-1  text-white p-4 rounded">
+    {/* Right (1/3 width) */}
+    {/* Currency & Tax */}
+      <div className="grid grid-cols-1  gap-6 mb-6">
+        <div>
+          <label className="block mb-2">Currency</label>
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="w-full border bg-black text-white padding-design rounded"
+          >
+            <option value="INR">INR (₹)</option>
+            <option value="USD">USD ($)</option>
+          </select>
+        </div>
+        <div>
+          <label className="block mb-2">Tax (%)</label>
+          <input
+            type="number"
+            value={tax}
+            onChange={(e) => setTax(parseFloat(e.target.value))}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+      </div>
+  </div>
+</div>
+      
+   
 
+      {/* Submit Button */}
+      <div className="flex justify-center gap-12 my-4" style={{ marginTop: '20px' }}>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="mt-6 w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+          className="invoice-btn primary px-6 py-2 bg-green-600 text-white rounded"
         >
           {loading ? 'Saving...' : editingInvoiceId ? 'Update Invoice' : 'Save Invoice'}
         </button>
+        <button
+          onClick={draftInvoices}
+          disabled={loading}
+          className="invoice-btn secondary px-6 py-2 bg-yellow-500 text-white rounded"
+        >
+          {loading ? 'Saving...' : editingInvoiceId ? 'Update Invoice' : 'Draft Invoice'}
+        </button>
+      </div>
 
-        {success && (
-          <p className="mt-4 text-green-600 font-medium">Invoice {editingInvoiceId ? 'updated' : 'saved'} successfully!</p>
-        )}
+      {/* {success && <p className="mt-4 text-green-400">Invoice saved successfully!</p>} */}
       </div>
     </div>
   );
