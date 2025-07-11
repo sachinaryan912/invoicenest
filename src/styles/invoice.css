@@ -1,0 +1,271 @@
+.invoice-wrapper {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  .invoice-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 0;
+  }
+  
+  .invoice-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 10px 20px;
+  }
+  input{
+    padding: 10px !important;
+    margin: 5px 0 !important;
+  }
+  .model-form{
+    padding: 20px !important;
+  }
+
+
+
+   .invoice-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .invoice-btn {
+    background-color: #ff6600;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 15px;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .invoice-btn:hover {
+    background-color: #e55b00;
+  }
+  
+  .invoice-btn.secondary {
+    background-color: transparent;
+    border: 1px solid #ff6600;
+    color: #ff6600;
+  }
+  
+  .invoice-btn.secondary:hover {
+    background-color: #1e1e1e;
+  }
+
+
+  .padding-design{
+    padding: 20px !important;
+  }
+
+  /* Toastify bold text */
+.Toastify__toast-body {
+  font-weight: bold;
+}
+
+.margin-design{
+  margin: 20px !important;
+}
+
+
+
+
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  font-size: 14px;
+  max-width: 300px;
+}
+
+.input-field {
+  padding: 8px 12px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  background-color: #1f1f1f;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+
+
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (min-width: 768px) {
+  .summary-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.project-summary {
+  flex: 2;
+}
+
+.project-summary h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.no-project {
+  color: #999;
+}
+
+.project-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1f1f1f;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.project-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.project-details {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.project-total {
+  font-weight: bold;
+  color: #4ade80;
+}
+
+.invoice-sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.signature-upload label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.signature-upload input[type="file"] {
+  display: block;
+  width: 100%;
+  background-color: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.signature-preview {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.signature-preview img {
+  height: 230px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.total-summary {
+  background-color: #1f1f1f;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 16px;
+  color: #fff;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.summary-row.total {
+  border-top: 1px solid #555;
+  padding-top: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #4ade80;
+}
+
+
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.input-icon-group {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  font-size: 16px;
+}
+
+.input-icon-group input,
+.input-icon-group select {
+  width: 100%;
+  padding: 10px 12px 10px 34px;
+  background-color: #1f1f1f;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+}
+
+.input-icon-group input:focus,
+.input-icon-group select:focus {
+  outline: none;
+  border-color: #4ade80;
+}
+
+@media (max-width: 640px) {
+  .top-controls {
+    justify-content: center;
+  }
+}
+
+/* InvoiceGenerator */

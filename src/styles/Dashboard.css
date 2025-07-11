@@ -134,3 +134,65 @@
     }
   }
   
+
+
+  /* # plan info */
+
+
+  /* Existing styles remain untouched */
+
+.plan-info {
+  margin-top: 2rem;
+  padding: 1rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left: 5px solid #ffaa00;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.plan-info h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  color: #ffaa00;
+}
+
+.recent-invoices {
+  margin-top: 2rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.recent-invoices h3 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  color: #00d084;
+}
+
+.recent-invoices ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recent-invoices li {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recent-invoices li:last-child {
+  border-bottom: none;
+}
+
+.recent-invoices .date {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+.recent-invoices .amount {
+  font-size: 1rem;
+  color: #00d084;
+}
