@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Home.css';
 import invoiceImg from '/assets/hero-image2.jpeg';
+import { useAuth } from '../context/AuthProvider';
 
 const HomePage = () => {
+   const { user, logout } = useAuth();
   return (
     <div className="home-hero-wrapper" style={{ backgroundImage: `url(${invoiceImg})` }}>
       <div className="home-overlay">
@@ -24,11 +26,23 @@ const HomePage = () => {
             <li> Save drafts and manage client data</li>
             <li> Sync across devices, powered by cloud</li>
           </ul>
+          {user ? ( <>
+            <div className="home-buttons">
+              <Link to="/dashboard" className="home-btn">Go to Dashboard</Link>
+              <Link to="/invoice-generator" className="home-btn secondary">Create Invoice</Link>
+            </div>
+          </> ):(<>
 
-          <div className="home-buttons">
+             <div className="home-buttons">
             <Link to="/register" className="home-btn">Get Started</Link>
+
             <Link to="/login" className="home-btn secondary">Login</Link>
           </div>
+          </>)
+
+}
+
+         
         </div>
       </div>
     </div>

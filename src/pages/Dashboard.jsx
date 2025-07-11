@@ -12,7 +12,6 @@ const Dashboard = () => {
       <div className="dashboard-overlay"></div>
 
       <div className="dashboard-content">
-        <Navbar />
 
         <div className="dashboard-container">
           <div className="dashboard-box">
